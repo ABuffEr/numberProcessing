@@ -5,7 +5,9 @@
 # Add-on to read digit by digit any number of specified length
 # from an experimental idea of Derek Riemer
 from gui import guiHelper, nvdaControls
+from logHandler import log
 from scriptHandler import getLastScriptRepeatCount
+from versionInfo import version_year, version_major
 import addonHandler
 import config
 import globalPluginHandler
@@ -30,36 +32,56 @@ addonSummary = curAddon.manifest['summary']
 addonHandler.initTranslation()
 
 confspec = {
-"initialState": "boolean(default=false)",
+"autoEnable": "boolean(default=false)",
+"prevEnabled": "boolean(default=false)",
 "userMinLen": "integer(default=2)",
 }
-
 config.conf.spec["numberProcessing"] = confspec
-myConf = config.conf["numberProcessing"]
-userMinLen = myConf["userMinLen"]
-oldProcessText = None
+backupProcessText = speechDictHandler.processText
+visitedProfiles = set()
+globalEnabled = False
+nvdaVersion = '.'.join([str(version_year), str(version_major)])
+lastProfile = None
 
 def compileExp():
 	exp = re.compile(r'\d{%s,}'%userMinLen)
 	return exp
 
-exp = compileExp()
-
 # (re)load config
 def loadConfig():
-	global myConf, userMinLen, exp
+	global myConf, autoEnable, prevEnabled, userMinLen, exp
 	myConf = config.conf["numberProcessing"]
+	autoEnable = myConf["autoEnable"]
+	prevEnabled = myConf["prevEnabled"]
 	userMinLen = myConf["userMinLen"]
 	exp = compileExp()
+
+loadConfig()
 
 def replaceFunc(match):
 	fixedText = '  '.join(list(match.group(0)))
 	return fixedText
 
 def newProcessText(text):
-	text = oldProcessText(text)
+	text = backupProcessText(text)
 	newText = exp.sub(replaceFunc, text)
 	return newText
+
+def enableProcessing():
+	global prevEnabled, myConf, globalEnabled
+	speechDictHandler.processText = newProcessText
+	if autoEnable:
+		prevEnabled = myConf["prevEnabled"] = True
+	else:
+		globalEnabled = True
+
+def disableProcessing():
+	global prevEnabled, myConf, globalEnabled
+	speechDictHandler.processText = backupProcessText
+	if autoEnable:
+		prevEnabled = myConf["prevEnabled"] = False
+	else:
+		globalEnabled = False
 
 # for settings presentation compatibility
 if hasattr(gui.settingsDialogs, "SettingsPanel"):
@@ -81,10 +103,10 @@ class NumberProcessingSettingsDialog(superDialogClass):
 	def makeSettings(self, settingsSizer):
 		loadConfig()
 		settingsSizerHelper = guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
-		# Translators: label for initialState  checkbox in settings
-		initialStateText = _("Processing automatically enabled")
-		self.initialStateCheckBox = settingsSizerHelper.addItem(wx.CheckBox(self, label=initialStateText))
-		self.initialStateCheckBox.SetValue(myConf["initialState"])
+		# Translators: label for autoEnable  checkbox in settings
+		autoEnableText = _("Processing automatically enabled")
+		self.autoEnableCheckBox = settingsSizerHelper.addItem(wx.CheckBox(self, label=autoEnableText))
+		self.autoEnableCheckBox.SetValue(myConf["autoEnable"])
 		# Translators: label for userMinLen checkbox in settings
 		userMinLenLabelText = _("Minimum number of digits to process individually")
 		self.userMinLenEdit = settingsSizerHelper.addLabeledControl(
@@ -95,15 +117,23 @@ class NumberProcessingSettingsDialog(superDialogClass):
 
 	# for dialog only
 	def postInit(self):
-		self.initialStateCheckBox.SetFocus()
+		self.autoEnableCheckBox.SetFocus()
 
 	# shared between onOk and onSave
 	def saveConfig(self):
 		# Update Configuration
-		myConf["initialState"] = self.initialStateCheckBox.IsChecked()
+		prevAutoEnable = myConf["autoEnable"]
+		myConf["autoEnable"] = self.autoEnableCheckBox.IsChecked()
 		myConf["userMinLen"] = self.userMinLenEdit.GetValue()
 		# update global variables
 		loadConfig()
+		if autoEnable:
+			#log.info("autoEnable after configuration")
+			enableProcessing()
+		elif prevAutoEnable and prevEnabled:
+			#log.info("Fix status to avoid manual enabled at first script invocation")
+			global globalEnabled
+			globalEnabled = True
 
 	# for dialog only
 	def onOk(self, evt):
@@ -151,8 +181,11 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			return
 		self.createMenu()
 		loadConfig()
-		if myConf["initialState"]:
-			self.script_toggleDigitManager(None, silent=True)
+		if hasattr(config, "post_configProfileSwitch"):
+			config.post_configProfileSwitch.register(self.handleConfigProfileSwitch)
+		if autoEnable:
+			#log.info("autoEnable at start")
+			enableProcessing()
 
 	def createMenu(self):
 		# Dialog or the panel.
@@ -172,36 +205,59 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				self.prefsMenu.RemoveItem(self.NumberProcessingItem)
 			except wx.PyDeadObjectError:
 				pass
-		global oldProcessText
-		if oldProcessText:
-			speechDictHandler.processText = oldProcessText
-			oldProcessText = None
+		loadConfig()
+		disableProcessing()
 
-	def script_toggleDigitManager(self, gesture, silent=False, repeating=False):
+	def script_toggleDigitManager(self, gesture, repeating=False):
 		if getLastScriptRepeatCount() and not repeating:
-			def run():
-				gui.mainFrame.prePopup()
-				d = QuickSettingsDialog(None, config.conf.profiles[-1].name)
-				if d:
-					d.Show()
-				gui.mainFrame.postPopup()
-			wx.CallAfter(run)
-			self.script_toggleDigitManager(None, silent=True, repeating=True)
+			self.launchQuickSettings()
+			self.script_toggleDigitManager(None, repeating=True)
 			return
 		loadConfig()
-		global oldProcessText
-		if oldProcessText:
-			speechDictHandler.processText = oldProcessText
-			oldProcessText = None
-			if not silent:
-				ui.message(_("Digit processing off"))
+		if (autoEnable and not prevEnabled) or (not autoEnable and not globalEnabled):
+			#log.info("manual enabled")
+			enableProcessing()
+			message = _("Digit processing on")
 		else:
-			oldProcessText = speechDictHandler.processText
-			speechDictHandler.processText = newProcessText
-			if not silent:
-				ui.message(_("Digit processing on"))
+			#log.info("manual disabled")
+			disableProcessing()
+			message = _("Digit processing off")
+		if not repeating:
+			ui.message(message)
 
 	script_toggleDigitManager.__doc__ = _("Pressed once, enables/disables digit processing; twice, launches quick settings")
+
+	def launchQuickSettings(self):
+		def run():
+			gui.mainFrame.prePopup()
+			d = QuickSettingsDialog(None, config.conf.profiles[-1].name)
+			if d:
+				d.Show()
+			gui.mainFrame.postPopup()
+		wx.CallAfter(run)
+
+	def handleConfigProfileSwitch(self):
+		global curProfile
+		loadConfig()
+		profileName = config.conf.profiles[-1].name
+		lastProfile = profileName
+		if autoEnable and profileName not in visitedProfiles:
+			visitedProfiles.add(profileName)
+			#log.info("autoEnable in %s for first time"%profileName)
+			enableProcessing()
+		elif (autoEnable and prevEnabled) or (not autoEnable and globalEnabled):
+			#log.info("enable after changing profile")
+			enableProcessing()
+		else:
+			#log.info("disable after changing profile")
+			disableProcessing()
+
+	def event_foreground(self, obj, nextHandler):
+		if nvdaVersion < '2018.3':
+			curProfile = config.conf.profiles[-1].name
+			if lastProfile != curProfile:
+				self.handleConfigProfileSwitc()
+		nextHandler()
 
 	__gestures = {
 		"kb:NVDA+shift+l": "toggleDigitManager"
