@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 'numberSpelling' '1.0-20191207-dev'\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@freelists.org'\n"
-"POT-Creation-Date: 2019-12-07 23:54+0100\n"
-"PO-Revision-Date: 2019-12-07 23:55+0100\n"
+"POT-Creation-Date: 2019-12-10 12:44+0100\n"
+"PO-Revision-Date: 2019-12-10 12:47+0100\n"
 "Last-Translator: Alberto Buffolino <a.buffolino@gmail.com>\n"
 "Language-Team: \n"
 "Language: it\n"
@@ -20,48 +20,48 @@ msgstr ""
 #. Translators: title of settings dialog
 #. Add-on summary, usually the user visible name of the addon.
 #. Translators: Summary for this add-on to be shown on installation and add-on information.
-#: addon\globalPlugins\numberProcessing.py:75 buildVars.py:17
+#: addon\globalPlugins\numberProcessing.py:97 buildVars.py:17
 msgid "Number Processing"
 msgstr "Number Processing"
 
 #. Translators: title of settings dialog
-#: addon\globalPlugins\numberProcessing.py:78
-#: addon\globalPlugins\numberProcessing.py:122
+#: addon\globalPlugins\numberProcessing.py:100
+#: addon\globalPlugins\numberProcessing.py:152
 msgid "Number Processing Settings"
 msgstr "Impostazioni Number Processing"
 
-#. Translators: label for initialState  checkbox in settings
-#: addon\globalPlugins\numberProcessing.py:85
+#. Translators: label for autoEnable  checkbox in settings
+#: addon\globalPlugins\numberProcessing.py:107
 msgid "Processing automatically enabled"
 msgstr "Elaborazione attiva automaticamente"
 
 #. Translators: label for userMinLen checkbox in settings
 #. Translators: label for userMinLen edit box in settings
-#: addon\globalPlugins\numberProcessing.py:89
-#: addon\globalPlugins\numberProcessing.py:127
+#: addon\globalPlugins\numberProcessing.py:111
+#: addon\globalPlugins\numberProcessing.py:157
 #, fuzzy
 #| msgid "Minimum number of digits to spell individually"
 msgid "Minimum number of digits to process individually"
 msgstr "Numero minimo di cifre da elaborare individualmente"
 
-#: addon\globalPlugins\numberProcessing.py:121
+#: addon\globalPlugins\numberProcessing.py:151
 msgid "normal configuration"
 msgstr "Configurazione normale"
 
 #. Translators: menu item in preferences
-#: addon\globalPlugins\numberProcessing.py:164
+#: addon\globalPlugins\numberProcessing.py:197
 msgid "Number Processing Settings..."
 msgstr "Impostazioni di Number Processing..."
 
-#: addon\globalPlugins\numberProcessing.py:197
-msgid "Digit processing off"
-msgstr "Elaborazione cifre disattivata"
-
-#: addon\globalPlugins\numberProcessing.py:202
+#: addon\globalPlugins\numberProcessing.py:220
 msgid "Digit processing on"
 msgstr "Elaborazione cifre attivata"
 
-#: addon\globalPlugins\numberProcessing.py:204
+#: addon\globalPlugins\numberProcessing.py:224
+msgid "Digit processing off"
+msgstr "Elaborazione cifre disattivata"
+
+#: addon\globalPlugins\numberProcessing.py:228
 msgid ""
 "Pressed once, enables/disables digit processing; twice, launches quick "
 "settings"
