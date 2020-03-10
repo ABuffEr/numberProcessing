@@ -256,7 +256,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if nvdaVersion < '2018.3':
 			curProfile = config.conf.profiles[-1].name
 			if lastProfile != curProfile:
-				self.handleConfigProfileSwitc()
+				self.handleConfigProfileSwitch()
 		nextHandler()
 
 	__gestures = {
