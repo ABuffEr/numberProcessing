@@ -1,0 +1,77 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the 'numberSpelling' package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: numberProcessing.py\n"
+"Report-Msgid-Bugs-To: 'nvda-translations@freelists.org'\n"
+"POT-Creation-Date: 2019-12-10 12:44+0100\n"
+"PO-Revision-Date: 2021-07-08 12:15+0800\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.4.3\n"
+"Last-Translator: 完美很难 <1872265132@qq.com>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Language: zh_CN\n"
+
+#. Translators: title of settings dialog
+#. Add-on summary, usually the user visible name of the addon.
+#. Translators: Summary for this add-on to be shown on installation and add-on information.
+#: addon\globalPlugins\numberProcessing.py:97 buildVars.py:17
+msgid "Number Processing"
+msgstr "数字处理"
+
+#. Translators: title of settings dialog
+#: addon\globalPlugins\numberProcessing.py:100
+#: addon\globalPlugins\numberProcessing.py:152
+msgid "Number Processing Settings"
+msgstr "数字处理设置"
+
+#. Translators: label for autoEnable  checkbox in settings
+#: addon\globalPlugins\numberProcessing.py:107
+msgid "Processing automatically enabled"
+msgstr "自动启用处理"
+
+#. Translators: label for userMinLen checkbox in settings
+#. Translators: label for userMinLen edit box in settings
+#: addon\globalPlugins\numberProcessing.py:111
+#: addon\globalPlugins\numberProcessing.py:157
+msgid "Minimum number of digits to process individually"
+msgstr "以数字读法读出的最小位数"
+
+#: addon\globalPlugins\numberProcessing.py:151
+msgid "normal configuration"
+msgstr "通用配置"
+
+#. Translators: menu item in preferences
+#: addon\globalPlugins\numberProcessing.py:197
+msgid "Number Processing Settings..."
+msgstr "数字处理设置..."
+
+#: addon\globalPlugins\numberProcessing.py:220
+msgid "Digit processing on"
+msgstr "启用数字处理"
+
+#: addon\globalPlugins\numberProcessing.py:224
+msgid "Digit processing off"
+msgstr "禁用数字处理"
+
+#: addon\globalPlugins\numberProcessing.py:228
+msgid ""
+"Pressed once, enables/disables digit processing; twice, launches quick "
+"settings"
+msgstr "按一次，启用或禁用数字处理；连按两次，打开数字处理设置对话框"
+
+#. Add-on description
+#. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
+#: buildVars.py:20
+msgid ""
+"Lets to read automatically digit by digit any number of specified length"
+msgstr "可将指定长度的数字以数字方式读出"
+
+msgid "Spelling enabled automatically"
+msgstr "自动启用拼写"
