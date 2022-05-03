@@ -19,4 +19,5 @@ Note that shortcut is configurable by relative section in NVDA preferences.
 
 
 [1]: https://github.com/derekriemer/phoneOpperationHelper
-[2]: https://raw.githubusercontent.com/ABuffEr/numberProcessing/master/packages/numberProcessing-1.0-20200310-dev.nvda-addon
+[2]: https://github.com/ABuffEr/numberProcessing/releases/download/20220503-dev/numberProcessing-20220503-dev.nvda-addon
+
