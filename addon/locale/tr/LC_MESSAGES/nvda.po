@@ -1,0 +1,83 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the 'numberSpelling' package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Numara İşleme\n"
+"Report-Msgid-Bugs-To: 'nvda-translations@freelists.org'\n"
+"POT-Creation-Date: 2019-12-10 12:44+0100\n"
+"PO-Revision-Date: 2022-07-22 20:41+0300\n"
+"Last-Translator: Umut KORKMAZ <umutkork@gmail.com>\n"
+"Language-Team: Umut KORKMAZ <umutkork@gmail.com>\n"
+"Language: tr_TR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.1.1\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+#. Translators: title of settings dialog
+#. Add-on summary, usually the user visible name of the addon.
+#. Translators: Summary for this add-on to be shown on installation and add-on information.
+#: addon\globalPlugins\numberProcessing.py:97 buildVars.py:17
+msgid "Number Processing"
+msgstr "Numara İşleme"
+
+#. Translators: title of settings dialog
+#: addon\globalPlugins\numberProcessing.py:100
+#: addon\globalPlugins\numberProcessing.py:152
+msgid "Number Processing Settings"
+msgstr "Numara İşleme Ayarları"
+
+#. Translators: label for autoEnable  checkbox in settings
+#: addon\globalPlugins\numberProcessing.py:107
+msgid "Processing automatically enabled"
+msgstr "Otomatik işleme etkin"
+
+#. Translators: label for userMinLen checkbox in settings
+#. Translators: label for userMinLen edit box in settings
+#: addon\globalPlugins\numberProcessing.py:111
+#: addon\globalPlugins\numberProcessing.py:157
+#| msgid "Minimum number of digits to spell individually"
+msgid "Minimum number of digits to process individually"
+msgstr "Bireysel olarak işlenecek minimum basamak sayısı"
+
+#: addon\globalPlugins\numberProcessing.py:151
+msgid "normal configuration"
+msgstr "normal konfigürasyon"
+
+#. Translators: menu item in preferences
+#: addon\globalPlugins\numberProcessing.py:197
+msgid "Number Processing Settings..."
+msgstr "Numara İşleme Ayarları..."
+
+#: addon\globalPlugins\numberProcessing.py:220
+msgid "Digit processing on"
+msgstr "Numara işleme açık"
+
+#: addon\globalPlugins\numberProcessing.py:224
+msgid "Digit processing off"
+msgstr "Numara işleme kapalı"
+
+#: addon\globalPlugins\numberProcessing.py:228
+msgid ""
+"Pressed once, enables/disables digit processing; twice, launches quick "
+"settings"
+msgstr ""
+"Bir kez basıldığında, Numara işlemeyi etkinleştirir/devre dışı bırakır; iki "
+"kez basıldığında, hızlı ayarları başlatır"
+
+#. Add-on description
+#. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
+#: buildVars.py:20
+msgid ""
+"Lets to read automatically digit by digit any number of specified length"
+msgstr ""
+"Belirtilen uzunluktaki herhangi bir sayıda basamak basamak otomatik olarak "
+"okunmasını sağlar"
+
+#~ msgid "Spelling enabled automatically"
+#~ msgstr "Elaborazione attivata automaticamente"
