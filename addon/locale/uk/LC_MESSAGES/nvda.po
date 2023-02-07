@@ -1,0 +1,79 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the 'numberProcessing' package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 'numberProcessing' '1.0-20200310-dev'\n"
+"Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
+"POT-Creation-Date: 2023-02-07 10:57+0200\n"
+"PO-Revision-Date: 2023-02-07 12:24+0200\n"
+"Last-Translator: Heorhii <nvda.translation.uk@gmail.com>\n"
+"Language-Team: \n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. Translators: title of settings dialog
+#. Add-on summary, usually the user visible name of the addon.
+#. Translators: Summary for this add-on
+#. to be shown on installation and add-on information found in Add-ons Manager.
+#: addon\globalPlugins\numberProcessing.py:97 buildVars.py:23
+msgid "Number Processing"
+msgstr "Обробка цифр"
+
+#. Translators: title of settings dialog
+#: addon\globalPlugins\numberProcessing.py:100
+#: addon\globalPlugins\numberProcessing.py:152
+msgid "Number Processing Settings"
+msgstr "Налаштування обробки цифр"
+
+#. Translators: label for autoEnable  checkbox in settings
+#: addon\globalPlugins\numberProcessing.py:107
+msgid "Processing automatically enabled"
+msgstr "Автоматична обробка ввімкнена"
+
+#. Translators: label for userMinLen checkbox in settings
+#. Translators: label for userMinLen edit box in settings
+#: addon\globalPlugins\numberProcessing.py:111
+#: addon\globalPlugins\numberProcessing.py:157
+msgid "Minimum number of digits to process individually"
+msgstr "Мінімальна кількість цифр для індивідуальної обробки"
+
+#: addon\globalPlugins\numberProcessing.py:151
+msgid "normal configuration"
+msgstr "нормальна конфігурація"
+
+#. Translators: menu item in preferences
+#: addon\globalPlugins\numberProcessing.py:197
+msgid "Number Processing Settings..."
+msgstr "Налаштування обробки цифр."
+
+#: addon\globalPlugins\numberProcessing.py:220
+msgid "Digit processing on"
+msgstr "Обробку цифр увімкнено"
+
+#: addon\globalPlugins\numberProcessing.py:224
+msgid "Digit processing off"
+msgstr "Обробку цифр вимкнено"
+
+#: addon\globalPlugins\numberProcessing.py:228
+msgid ""
+"Pressed once, enables/disables digit processing; twice, launches quick "
+"settings"
+msgstr ""
+"Одноразове натискання вмикає/вимикає обробку цифр; подвійне, запускає "
+"швидкі налаштування"
+
+#. Add-on description
+#. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
+#: buildVars.py:26
+msgid ""
+"Lets to read automatically digit by digit any number of specified length"
+msgstr ""
+"Дозволяє автоматично читати посимвольно будь-яке число заданої довжини"
