@@ -31,10 +31,20 @@ addonSummary = curAddon.manifest['summary']
 
 addonHandler.initTranslation()
 
+CURRENCY_SYMBOLS = (
+	"$",
+	"💵",
+	"€",
+	"💶",
+	"£",
+	"💷",
+	"¥",
+	"💴",
+)
 confspec = {
-"autoEnable": "boolean(default=false)",
-"prevEnabled": "boolean(default=false)",
-"userMinLen": "integer(default=2)",
+	"autoEnable": "boolean(default=false)",
+	"prevEnabled": "boolean(default=false)",
+	"userMinLen": "integer(default=2)",
 }
 config.conf.spec["numberProcessing"] = confspec
 backupProcessText = speechDictHandler.processText
@@ -43,28 +53,42 @@ globalEnabled = False
 nvdaVersion = '.'.join([str(version_year), str(version_major)])
 lastProfile = None
 
-def compileExp():
-	exp = re.compile(r'\d{%s,}'%userMinLen)
-	return exp
+def compileExps():
+	basePattern = r'\d{%s,}'%userMinLen
+	exp1 = re.compile(basePattern)
+	symbols = ''.join(CURRENCY_SYMBOLS)
+	exp2 = re.compile(r'([%s]\s*)(%s)'%(symbols, basePattern))
+	return (exp1, exp2,)
 
 # (re)load config
 def loadConfig():
-	global myConf, autoEnable, prevEnabled, userMinLen, exp
+	global myConf, autoEnable, prevEnabled, userMinLen, exp1, exp2
 	myConf = config.conf["numberProcessing"]
 	autoEnable = myConf["autoEnable"]
 	prevEnabled = myConf["prevEnabled"]
 	userMinLen = myConf["userMinLen"]
-	exp = compileExp()
+	exp1, exp2 = compileExps()
 
 loadConfig()
 
-def replaceFunc(match):
+def replaceFunc1(match):
 	fixedText = '  '.join(list(match.group(0)))
+	return fixedText
+
+def replaceFunc2(match):
+	fixedText = '  '.join([*list(match.group(2)), match.group(1)])
 	return fixedText
 
 def newProcessText(text):
 	text = backupProcessText(text)
-	newText = exp.sub(replaceFunc, text)
+	currencyMatch = exp2.match(text)
+	if currencyMatch:
+		endPos = currencyMatch.span(currencyMatch.lastindex)[1]
+		part1 = exp2.sub(replaceFunc2, text[0:endPos])
+		part2 = exp1.sub(replaceFunc1, text[endPos:])
+		newText = ''.join([part1, part2])
+	else:
+		newText = exp1.sub(replaceFunc1, text)
 	return newText
 
 def enableProcessing():
