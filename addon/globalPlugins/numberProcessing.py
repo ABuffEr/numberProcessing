@@ -54,10 +54,9 @@ nvdaVersion = '.'.join([str(version_year), str(version_major)])
 lastProfile = None
 
 def compileExps():
-	basePattern = r'\d{%s,}'%userMinLen
-	exp1 = re.compile(basePattern)
+	exp1 = re.compile(r'\d{%s,}'%userMinLen)
 	symbols = ''.join(CURRENCY_SYMBOLS)
-	exp2 = re.compile(r'([%s]\s*)(%s)'%(symbols, basePattern))
+	exp2 = re.compile(r'([%s])?\s*([\d,.]+)'%symbols)
 	return (exp1, exp2,)
 
 # (re)load config
@@ -71,25 +70,20 @@ def loadConfig():
 
 loadConfig()
 
-def replaceFunc1(match):
+def replaceFunc(match):
+	# group(0) returns digits captured by match
 	fixedText = '  '.join(list(match.group(0)))
 	return fixedText
 
-def replaceFunc2(match):
-	fixedText = '  '.join([*list(match.group(2)), match.group(1)])
-	return fixedText
-
 def newProcessText(text):
+	# pre-process to avoid problems with decimal separator,
+	# appending currency sign to the end of the amount
+	text = exp2.sub(r'\2\1', text)
+	# get spoken version
 	text = backupProcessText(text)
-	currencyMatch = exp2.match(text)
-	if currencyMatch:
-		endPos = currencyMatch.span(currencyMatch.lastindex)[1]
-		part1 = exp2.sub(replaceFunc2, text[0:endPos])
-		part2 = exp1.sub(replaceFunc1, text[endPos:])
-		newText = ''.join([part1, part2])
-	else:
-		newText = exp1.sub(replaceFunc1, text)
-	return newText
+	# add whitespace around digits
+	text = exp1.sub(replaceFunc, text)
+	return text
 
 def enableProcessing():
 	global prevEnabled, myConf, globalEnabled
