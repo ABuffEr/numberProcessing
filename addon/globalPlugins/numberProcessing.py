@@ -1,33 +1,23 @@
 # -*- coding: UTF-8 -*-
 # NumberProcessing
 # A global plugin for NVDA
-# Copyright 2019 Alberto Buffolino, released under GPL
+# Copyright Alberto Buffolino, released under GPL
 # Add-on to read digit by digit any number of specified length
 # from an experimental idea of Derek Riemer
-from gui import guiHelper, nvdaControls
-from logHandler import log
-from scriptHandler import getLastScriptRepeatCount
-from versionInfo import version_year, version_major
 import addonHandler
 import config
 import globalPluginHandler
 import globalVars
 import gui
-import os
 import re
-import speechDictHandler
+import speech
 import ui
 import wx
-try:
-	from globalCommands import SCRCAT_SPEECH
-except:
-	SCRCAT_SPEECH = None
 
-addonDir = os.path.join(os.path.dirname(__file__), "..")
-if isinstance(addonDir, bytes):
-	addonDir = addonDir.decode("mbcs")
-curAddon = addonHandler.Addon(addonDir)
-addonSummary = curAddon.manifest['summary']
+from enum import Enum
+from gui import guiHelper, nvdaControls, settingsDialogs
+from scriptHandler import script, getLastScriptRepeatCount
+
 
 addonHandler.initTranslation()
 
@@ -43,81 +33,68 @@ CURRENCY_SYMBOLS = (
 )
 confspec = {
 	"autoEnable": "boolean(default=false)",
-	"prevEnabled": "boolean(default=false)",
 	"userMinLen": "integer(default=2)",
 }
 config.conf.spec["numberProcessing"] = confspec
-backupProcessText = speechDictHandler.processText
-visitedProfiles = set()
-globalEnabled = False
-nvdaVersion = '.'.join([str(version_year), str(version_major)])
-lastProfile = None
+profileStatus = {}
 
-def compileExps():
-	exp1 = re.compile(r'\d{%s,}'%userMinLen)
-	symbols = ''.join(CURRENCY_SYMBOLS)
-	exp2 = re.compile(r'([%s])?\s*([\d,.]+)'%symbols)
-	return (exp1, exp2,)
+class Status(Enum):
+
+	DISABLED = 0
+	AUTO_ENABLED = 1
+	MANUAL_ENABLED = 2
 
 # (re)load config
 def loadConfig():
-	global myConf, autoEnable, prevEnabled, userMinLen, exp1, exp2
+	global myConf, exp1, exp2, curProfile
 	myConf = config.conf["numberProcessing"]
 	autoEnable = myConf["autoEnable"]
-	prevEnabled = myConf["prevEnabled"]
 	userMinLen = myConf["userMinLen"]
-	exp1, exp2 = compileExps()
+	exp1 = re.compile(r'\d{%s,}'%userMinLen)
+	symbols = ''.join(CURRENCY_SYMBOLS)
+	exp2 = re.compile(r'([%s])?\s*([\d,.]+)'%symbols)
+	curProfile = config.conf.profiles[-1].name
+	# adjust status for current profile
+	if autoEnable:
+		profileStatus[curProfile] = Status.AUTO_ENABLED
+	# adjust after disabling auto enable in settings
+	elif profileStatus.get(curProfile, Status.DISABLED) == Status.AUTO_ENABLED:
+		profileStatus[curProfile] = Status.DISABLED
 
 loadConfig()
+
+def filter_numberProcessing(speechSequence):
+	if not isEnabled():
+		return speechSequence
+	newSpeechSequence = []
+	for item in speechSequence:
+		if not isinstance(item, str):
+			newSpeechSequence.append(item)
+			continue
+		# pre-process to avoid problems with decimal separator,
+		# appending currency sign to the end of the amount
+		item = exp2.sub(r'\2\1', item)
+		# add whitespace around digits
+		item = exp1.sub(replaceFunc, item)
+		newSpeechSequence.append(item)
+	return newSpeechSequence
+
+def isEnabled():
+	status = profileStatus.get(curProfile, Status.DISABLED)
+	return bool(status.value)
 
 def replaceFunc(match):
 	# group(0) returns digits captured by match
 	fixedText = '  '.join(list(match.group(0)))
 	return fixedText
 
-def newProcessText(text):
-	# pre-process to avoid problems with decimal separator,
-	# appending currency sign to the end of the amount
-	text = exp2.sub(r'\2\1', text)
-	# get spoken version
-	text = backupProcessText(text)
-	# add whitespace around digits
-	text = exp1.sub(replaceFunc, text)
-	return text
 
-def enableProcessing():
-	global prevEnabled, myConf, globalEnabled
-	speechDictHandler.processText = newProcessText
-	if autoEnable:
-		prevEnabled = myConf["prevEnabled"] = True
-	else:
-		globalEnabled = True
+class NumberProcessingSettings(settingsDialogs.SettingsPanel):
+	"""Class to define settings."""
 
-def disableProcessing():
-	global prevEnabled, myConf, globalEnabled
-	speechDictHandler.processText = backupProcessText
-	if autoEnable:
-		prevEnabled = myConf["prevEnabled"] = False
-	else:
-		globalEnabled = False
+	# Translators: title of settings dialog
+	title = _("Number Processing")
 
-# for settings presentation compatibility
-if hasattr(gui.settingsDialogs, "SettingsPanel"):
-	superDialogClass = gui.settingsDialogs.SettingsPanel
-else:
-	superDialogClass = gui.SettingsDialog
-
-class NumberProcessingSettingsDialog(superDialogClass):
-	"""Class to define settings dialog."""
-
-	if hasattr(gui.settingsDialogs, "SettingsPanel"):
-		# Translators: title of settings dialog
-		title = _("Number Processing")
-	else:
-		# Translators: title of settings dialog
-		title = _("Number Processing Settings")
-
-	# common to dialog and panel
 	def makeSettings(self, settingsSizer):
 		loadConfig()
 		settingsSizerHelper = guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
@@ -133,34 +110,13 @@ class NumberProcessingSettingsDialog(superDialogClass):
 			min=2,
 			initial=myConf["userMinLen"])
 
-	# for dialog only
-	def postInit(self):
-		self.autoEnableCheckBox.SetFocus()
-
-	# shared between onOk and onSave
-	def saveConfig(self):
+	def onSave(self):
 		# Update Configuration
-		prevAutoEnable = myConf["autoEnable"]
 		myConf["autoEnable"] = self.autoEnableCheckBox.IsChecked()
 		myConf["userMinLen"] = self.userMinLenEdit.GetValue()
-		# update global variables
+		# reload new config
 		loadConfig()
-		if autoEnable:
-			#log.info("autoEnable after configuration")
-			enableProcessing()
-		elif prevAutoEnable and prevEnabled:
-			#log.info("Fix status to avoid manual enabled at first script invocation")
-			global globalEnabled
-			globalEnabled = True
 
-	# for dialog only
-	def onOk(self, evt):
-		self.saveConfig()
-		super(NumberProcessingSettingsDialog, self).onOk(evt)
-
-	# for panel only
-	def onSave(self):
-		self.saveConfig()
 
 class QuickSettingsDialog(wx.Dialog):
 
@@ -185,13 +141,13 @@ class QuickSettingsDialog(wx.Dialog):
 	def onOk(self, evt):
 		# Update Configuration
 		myConf["userMinLen"] = self.userMinLenEdit.GetValue()
-		# update global variables
+		# reload new config
 		loadConfig()
 		self.Destroy()
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
-	scriptCategory = addonSummary
+	scriptCategory = addonHandler.getCodeAddon().manifest["summary"]
 
 	def __init__(self, *args, **kwargs):
 		super(GlobalPlugin, self).__init__(*args, **kwargs)
@@ -199,84 +155,44 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			return
 		self.createMenu()
 		loadConfig()
-		if hasattr(config, "post_configProfileSwitch"):
-			config.post_configProfileSwitch.register(self.handleConfigProfileSwitch)
-		if autoEnable:
-			#log.info("autoEnable at start")
-			enableProcessing()
+		config.post_configProfileSwitch.register(self.handleConfigProfileSwitch)
+		speech.extensions.filter_speechSequence.register(filter_numberProcessing)
 
 	def createMenu(self):
-		# Dialog or the panel.
-		if hasattr(gui.settingsDialogs, "SettingsPanel"):
-			gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(NumberProcessingSettingsDialog)
-		else:
-			self.prefsMenu = gui.mainFrame.sysTrayIcon.menu.GetMenuItems()[0].GetSubMenu()
-			# Translators: menu item in preferences
-			self.NumberProcessingItem = self.prefsMenu.Append(wx.ID_ANY, _("Number Processing Settings..."), "")
-			gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, lambda e: gui.mainFrame._popupSettingsDialog(NumberProcessingSettingsDialog), self.NumberProcessingItem)
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(NumberProcessingSettings)
 
 	def terminate(self):
-		if hasattr(gui.settingsDialogs, "SettingsPanel"):
-			gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(NumberProcessingSettingsDialog)
-		else:
-			try:
-				self.prefsMenu.RemoveItem(self.NumberProcessingItem)
-			except wx.PyDeadObjectError:
-				pass
-		loadConfig()
-		disableProcessing()
+		profileStatus.clear()
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(NumberProcessingSettings)
 
+	@script(
+		# Translators: Message presented in input help mode.
+		description=_("Pressed once, enables/disables digit processing; twice, launches quick settings"),
+		gesture="kb:nvda+shift+l"
+	)
 	def script_toggleDigitManager(self, gesture, repeating=False):
 		if getLastScriptRepeatCount() and not repeating:
 			self.launchQuickSettings()
 			self.script_toggleDigitManager(None, repeating=True)
 			return
 		loadConfig()
-		if (autoEnable and not prevEnabled) or (not autoEnable and not globalEnabled):
-			#log.info("manual enabled")
-			enableProcessing()
+		if not isEnabled():
+			profileStatus[curProfile] = Status.MANUAL_ENABLED
 			message = _("Digit processing on")
 		else:
-			#log.info("manual disabled")
-			disableProcessing()
+			profileStatus[curProfile] = Status.DISABLED
 			message = _("Digit processing off")
 		if not repeating:
 			ui.message(message)
 
-	script_toggleDigitManager.__doc__ = _("Pressed once, enables/disables digit processing; twice, launches quick settings")
-
 	def launchQuickSettings(self):
 		def run():
 			gui.mainFrame.prePopup()
-			d = QuickSettingsDialog(None, config.conf.profiles[-1].name)
+			d = QuickSettingsDialog(None, curProfile)
 			if d:
 				d.Show()
 			gui.mainFrame.postPopup()
 		wx.CallAfter(run)
 
 	def handleConfigProfileSwitch(self):
-		global curProfile
 		loadConfig()
-		profileName = config.conf.profiles[-1].name
-		lastProfile = profileName
-		if autoEnable and profileName not in visitedProfiles:
-			visitedProfiles.add(profileName)
-			#log.info("autoEnable in %s for first time"%profileName)
-			enableProcessing()
-		elif (autoEnable and prevEnabled) or (not autoEnable and globalEnabled):
-			#log.info("enable after changing profile")
-			enableProcessing()
-		else:
-			#log.info("disable after changing profile")
-			disableProcessing()
-
-	def event_foreground(self, obj, nextHandler):
-		if nvdaVersion < '2018.3':
-			curProfile = config.conf.profiles[-1].name
-			if lastProfile != curProfile:
-				self.handleConfigProfileSwitch()
-		nextHandler()
-
-	__gestures = {
-		"kb:NVDA+shift+l": "toggleDigitManager"
-	}
