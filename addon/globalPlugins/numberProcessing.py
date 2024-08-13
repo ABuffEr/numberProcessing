@@ -32,6 +32,8 @@ CURRENCY_SYMBOLS = (
 	"💷",
 	"¥",
 	"💴",
+	"₩",
+	"₫"
 )
 confspec = {
 	"autoEnable": "boolean(default=false)",
@@ -58,7 +60,7 @@ def loadConfig():
 	userMinLen = myConf["userMinLen"]
 	digitExp = re.compile(r'\d{%s,}'%userMinLen)
 	symbols = ''.join(CURRENCY_SYMBOLS)
-	symbolExp = re.compile(r'([%s])?(\s*)?([\d,.]+)'%symbols)
+	symbolExp = re.compile(r'([%s])?(\s*)?(\d+([,.]\d*)?)'%symbols)
 	curProfile = config.conf.profiles[-1].name
 	# adjust status for current profile
 	if autoEnable:
