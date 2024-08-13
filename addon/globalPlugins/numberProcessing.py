@@ -16,11 +16,13 @@ import wx
 
 from enum import Enum
 from gui import guiHelper, nvdaControls, settingsDialogs
+from logHandler import log
 from scriptHandler import script, getLastScriptRepeatCount
 
 
 addonHandler.initTranslation()
 
+DEBUG = False
 CURRENCY_SYMBOLS = (
 	"$",
 	"💵",
@@ -44,15 +46,19 @@ class Status(Enum):
 	AUTO_ENABLED = 1
 	MANUAL_ENABLED = 2
 
+def debugLog(message):
+	if DEBUG:
+		log.info(message)
+
 # (re)load config
 def loadConfig():
-	global myConf, exp1, exp2, curProfile
+	global myConf, digitExp, symbolExp, curProfile
 	myConf = config.conf["numberProcessing"]
 	autoEnable = myConf["autoEnable"]
 	userMinLen = myConf["userMinLen"]
-	exp1 = re.compile(r'\d{%s,}'%userMinLen)
+	digitExp = re.compile(r'\d{%s,}'%userMinLen)
 	symbols = ''.join(CURRENCY_SYMBOLS)
-	exp2 = re.compile(r'([%s])?\s*([\d,.]+)'%symbols)
+	symbolExp = re.compile(r'([%s])?(\s*)?([\d,.]+)'%symbols)
 	curProfile = config.conf.profiles[-1].name
 	# adjust status for current profile
 	if autoEnable:
@@ -66,17 +72,22 @@ loadConfig()
 def filter_numberProcessing(speechSequence):
 	if not isEnabled():
 		return speechSequence
+	debugLog("Initial speech sequence: %s"%speechSequence)
 	newSpeechSequence = []
 	for item in speechSequence:
 		if not isinstance(item, str):
 			newSpeechSequence.append(item)
 			continue
+		debugLog("Initial item: %s"%item)
 		# pre-process to avoid problems with decimal separator,
 		# appending currency sign to the end of the amount
-		item = exp2.sub(r'\2\1', item)
+		item = symbolExp.sub(r'\2\3\1', item)
+		debugLog("Item after symbolExp: %s"%item)
 		# add whitespace around digits
-		item = exp1.sub(replaceFunc, item)
+		item = digitExp.sub(replaceFunc, item)
+		debugLog("Item after digitExp: %s"%item)
 		newSpeechSequence.append(item)
+	debugLog("New speech sequence: %s"%newSpeechSequence)
 	return newSpeechSequence
 
 def isEnabled():
