@@ -8,7 +8,11 @@ In addition, from settings, you can also enable the autostart of digit processin
 
 Inspired by [an experimental work of Derek Riemer.][1]
 
-Compatible with NVDA 2017.3 and above, download it [here.][2]
+## Compatibility
+
+For NVDA 2024.2 and beyond, see [latest release.][2]
+
+For previous versions (2017.3-2024.1), download [this old build.][3]
 
 ## Commands
 
@@ -19,4 +23,5 @@ Note that shortcut is configurable by relative section in NVDA preferences.
 
 
 [1]: https://github.com/derekriemer/phoneOpperationHelper
-[2]: https://github.com/ABuffEr/numberProcessing/releases/download/20230310-dev/numberProcessing-20230310-dev.nvda-addon
+[2]: https://github.com/ABuffEr/numberProcessing/releases/latest
+[3]: https://github.com/ABuffEr/numberProcessing/releases/download/20230310-dev/numberProcessing-20230310-dev.nvda-addon
