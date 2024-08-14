@@ -47,6 +47,8 @@ class Status(Enum):
 	DISABLED = 0
 	AUTO_ENABLED = 1
 	MANUAL_ENABLED = 2
+	MANUAL_NORMAL_ENABLED = 3
+
 
 def debugLog(message):
 	if DEBUG:
@@ -72,7 +74,7 @@ def loadConfig():
 loadConfig()
 
 def filter_numberProcessing(speechSequence):
-	if not isEnabled():
+	if not isProcessingEnabled():
 		return speechSequence
 	debugLog("Initial speech sequence: %s"%speechSequence)
 	newSpeechSequence = []
@@ -92,9 +94,24 @@ def filter_numberProcessing(speechSequence):
 	debugLog("New speech sequence: %s"%newSpeechSequence)
 	return newSpeechSequence
 
-def isEnabled():
-	status = profileStatus.get(curProfile, Status.DISABLED)
-	return bool(status.value)
+def isProcessingEnabled():
+	normalStatus = profileStatus.get(None, Status.DISABLED)
+	curStatus = profileStatus.get(curProfile, Status.DISABLED)
+	return bool(normalStatus.value) or bool(curStatus.value)
+
+def enableProcessing():
+	if curProfile is None:
+		newStatus = Status.MANUAL_NORMAL_ENABLED
+	else:
+		newStatus = Status.MANUAL_ENABLED
+	profileStatus[curProfile] = newStatus
+
+def disableProcessing():
+	newStatus = Status.DISABLED
+	profileStatus[curProfile] = newStatus
+	if curProfile and Status.MANUAL_NORMAL_ENABLED in profileStatus.values():
+		profileStatus[None] = newStatus
+
 
 def replaceFunc(match):
 	# group(0) returns digits captured by match
@@ -189,11 +206,11 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.script_toggleDigitManager(None, repeating=True)
 			return
 		loadConfig()
-		if not isEnabled():
-			profileStatus[curProfile] = Status.MANUAL_ENABLED
+		if not isProcessingEnabled():
+			enableProcessing()
 			message = _("Digit processing on")
 		else:
-			profileStatus[curProfile] = Status.DISABLED
+			disableProcessing()
 			message = _("Digit processing off")
 		if not repeating:
 			ui.message(message)
