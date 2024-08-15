@@ -47,7 +47,6 @@ class Status(Enum):
 	DISABLED = 0
 	AUTO_ENABLED = 1
 	MANUAL_ENABLED = 2
-	MANUAL_NORMAL_ENABLED = 3
 
 
 def debugLog(message):
@@ -62,7 +61,7 @@ def loadConfig():
 	userMinLen = myConf["userMinLen"]
 	digitExp = re.compile(r'\d{%s,}'%userMinLen)
 	symbols = ''.join(CURRENCY_SYMBOLS)
-	symbolExp = re.compile(r'([%s])?(\s*)?(\d+([,.]\d*)?)'%symbols)
+	symbolExp = re.compile(r'([%s])?(\s*)?(\d+([,.]\d+)?)'%symbols)
 	curProfile = config.conf.profiles[-1].name
 	# adjust status for current profile
 	if autoEnable:
@@ -95,22 +94,16 @@ def filter_numberProcessing(speechSequence):
 	return newSpeechSequence
 
 def isProcessingEnabled():
-	normalStatus = profileStatus.get(None, Status.DISABLED)
-	curStatus = profileStatus.get(curProfile, Status.DISABLED)
-	return bool(normalStatus.value) or bool(curStatus.value)
+	status = profileStatus.get(curProfile, Status.DISABLED)
+	return bool(status.value)
 
 def enableProcessing():
-	if curProfile is None:
-		newStatus = Status.MANUAL_NORMAL_ENABLED
-	else:
-		newStatus = Status.MANUAL_ENABLED
+	newStatus = Status.MANUAL_ENABLED
 	profileStatus[curProfile] = newStatus
 
 def disableProcessing():
 	newStatus = Status.DISABLED
 	profileStatus[curProfile] = newStatus
-	if curProfile and Status.MANUAL_NORMAL_ENABLED in profileStatus.values():
-		profileStatus[None] = newStatus
 
 
 def replaceFunc(match):
@@ -205,7 +198,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.launchQuickSettings()
 			self.script_toggleDigitManager(None, repeating=True)
 			return
-		loadConfig()
+#		loadConfig()
 		if not isProcessingEnabled():
 			enableProcessing()
 			message = _("Digit processing on")
