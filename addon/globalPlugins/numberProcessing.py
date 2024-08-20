@@ -23,23 +23,29 @@ from scriptHandler import script, getLastScriptRepeatCount
 addonHandler.initTranslation()
 
 DEBUG = False
+# see https://www.currencycalc.com/symbols
 CURRENCY_SYMBOLS = (
 	"$",
-	"💵",
-	"€",
-	"💶",
 	"£",
-	"💷",
 	"¥",
+	"¤",
+	"💵",
+	"💶",
+	"💷",
 	"💴",
-	"₩",
-	"₫"
+	"﷼",
+	"৳",
+	"៛",
+	"฿",
+	"\\u20a0-\\u20cf"  # Unicode currency block
 )
 confspec = {
 	"autoEnable": "boolean(default=false)",
 	"userMinLen": "integer(default=2)",
 }
 config.conf.spec["numberProcessing"] = confspec
+condExp = re.compile(r"\d")
+symbolExp = re.compile(r"([%s])?(\s*)?(\d+([,.]\d+)*)"%''.join(CURRENCY_SYMBOLS))
 profileStatus = {}
 
 class Status(Enum):
@@ -55,13 +61,11 @@ def debugLog(message):
 
 # (re)load config
 def loadConfig():
-	global myConf, digitExp, symbolExp, curProfile
+	global myConf, digitExp, curProfile
 	myConf = config.conf["numberProcessing"]
 	autoEnable = myConf["autoEnable"]
 	userMinLen = myConf["userMinLen"]
-	digitExp = re.compile(r'\d{%s,}'%userMinLen)
-	symbols = ''.join(CURRENCY_SYMBOLS)
-	symbolExp = re.compile(r'([%s])?(\s*)?(\d+([,.]\d+)?)'%symbols)
+	digitExp = re.compile(r"\d{%s,}"%userMinLen)
 	curProfile = config.conf.profiles[-1].name
 	# adjust status for current profile
 	if autoEnable:
@@ -78,7 +82,7 @@ def filter_numberProcessing(speechSequence):
 	debugLog("Initial speech sequence: %s"%speechSequence)
 	newSpeechSequence = []
 	for item in speechSequence:
-		if not isinstance(item, str):
+		if not isinstance(item, str) or not condExp.search(item):
 			newSpeechSequence.append(item)
 			continue
 		debugLog("Initial item: %s"%item)
