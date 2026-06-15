@@ -11,3 +11,4 @@ manifest.ini
 /[0-9]*.[0-9]*.[0-9]*.json
 .vscode/
 .ruff_cache/
+*.egg-info
